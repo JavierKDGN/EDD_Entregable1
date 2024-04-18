@@ -21,15 +21,11 @@ int main() {
   moving_image im;
 
   im.draw("imagen.png");
-  im.move_left(500);
+  im.move_down(50);
   sleep(2);
-  im.draw("imagen_desplazada_500izq.png");
-  im.move_right(500);
-  sleep(2);
-  im.draw("imagen_desplazada_alinicio.png");
-  im.move_right(500);
-  sleep(2);
-  im.draw("imagen_desplazada_500der.png");
+  im.draw("imagen_desplazada_50abajo.png");
+
+  
 
   /* NOTA 1: Si usan el mismo nombre para las imágenes, entonces cada llamada al
   método draw() sobreescribirá a la imagen */
