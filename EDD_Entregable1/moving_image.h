@@ -111,6 +111,12 @@ public:
     for(int i=0; i < H_IMG; i++)
       for(int j=0; j < W_IMG; j++)
     	blue_layer[i][j] = tmp_layer[i][j];
+
+    // Arregla el memory leak que introdujo el profe xD
+    for(int i=0; i < H_IMG; i++) 
+      delete tmp_layer[i];
+
+      delete tmp_layer;
   }
 
   void move_right(int d) {
@@ -156,6 +162,12 @@ public:
       for(int i=0; i < H_IMG; i++)
 		for(int j=0; j < W_IMG; j++)
 			blue_layer[i][j] = tmp_layer[i][j];
+
+      // Delete punteros
+      for(int i=0; i < H_IMG; i++) 
+        delete tmp_layer[i];
+
+        delete tmp_layer;
   }
 
   void move_up(int d) {
@@ -202,6 +214,12 @@ public:
     for(int i=0; i < H_IMG; i++)
       for(int j=0; j < W_IMG; j++)
     	blue_layer[i][j] = tmp_layer[i][j];
+
+    // Delete punteros
+    for(int i=0; i < H_IMG; i++) 
+      delete tmp_layer[i];
+
+      delete tmp_layer;
   }
 
   void move_down(int d) {
@@ -247,9 +265,94 @@ public:
 	for(int i=0; i < H_IMG; i++)
 	  for(int j=0; j < W_IMG; j++)
 		blue_layer[i][j] = tmp_layer[i][j];
+
+    // Delete punteros
+    for(int i=0; i < H_IMG; i++) 
+      delete tmp_layer[i];
+
+      delete tmp_layer;
   }
 
+  // Rotación anti-horario
+  void rotate() {
+    unsigned char **tmp_layer = new unsigned char*[H_IMG];
+	for(int i=0; i < H_IMG; i++) 
+	  tmp_layer[i] = new unsigned char[W_IMG];
+
+    // Rotar capa roja
+    for (int i = 0; i < W_IMG; i++)
+      for (int j = 0; j < H_IMG; j++)
+        tmp_layer[W_IMG - j - 1][i] = red_layer[i][j];
+
+    for (int i = 0; i < W_IMG; i++)
+      for (int j = 0; j < H_IMG; j++)
+        red_layer[i][j] = tmp_layer[i][j];
+
+    // Rotar capa verde
+    for (int i = 0; i < W_IMG; i++)
+      for (int j = 0; j < H_IMG; j++)
+        tmp_layer[W_IMG - j - 1][i] = green_layer[i][j];
+
+    for (int i = 0; i < W_IMG; i++)
+      for (int j = 0; j < H_IMG; j++)
+        green_layer[i][j] = tmp_layer[i][j];
+
+    // Rotar capa azul
+    for (int i = 0; i < W_IMG; i++)
+      for (int j = 0; j < H_IMG; j++)
+        tmp_layer[W_IMG - j - 1][i] = blue_layer[i][j];
+
+    for (int i = 0; i < W_IMG; i++)
+      for (int j = 0; j < H_IMG; j++)
+        blue_layer[i][j] = tmp_layer[i][j];
+
+    // Delete punteros
+    for(int i=0; i < H_IMG; i++) 
+      delete tmp_layer[i];
+
+      delete tmp_layer;
+}
+
 private:
+  void rotate_horario() {
+    unsigned char **tmp_layer = new unsigned char*[H_IMG];
+	for(int i=0; i < H_IMG; i++) 
+      tmp_layer[i] = new unsigned char[W_IMG];
+
+    // Rotar capa roja
+    for (int i = 0; i < W_IMG; i++)
+      for (int j = 0; j < H_IMG; j++)
+        tmp_layer[j][H_IMG - i - 1] = red_layer[i][j];
+
+    for (int i = 0; i < W_IMG; i++)
+      for (int j = 0; j < H_IMG; j++)
+        red_layer[i][j] = tmp_layer[i][j];
+
+    // Rotar capa verde
+    for (int i = 0; i < W_IMG; i++)
+      for (int j = 0; j < H_IMG; j++)
+        tmp_layer[j][H_IMG - i - 1] = green_layer[i][j];
+
+    for (int i = 0; i < W_IMG; i++)
+      for (int j = 0; j < H_IMG; j++)
+        green_layer[i][j] = tmp_layer[i][j];
+
+    // Rotar capa azul
+    for (int i = 0; i < W_IMG; i++)
+      for (int j = 0; j < H_IMG; j++)
+        tmp_layer[j][H_IMG - i - 1] = blue_layer[i][j];
+
+    for (int i = 0; i < W_IMG; i++)
+      for (int j = 0; j < H_IMG; j++)
+        blue_layer[i][j] = tmp_layer[i][j];
+
+	// Delete punteros
+    for(int i=0; i < H_IMG; i++) 
+      delete tmp_layer[i];
+
+      delete tmp_layer;
+  }
+
   // Función privada que guarda la imagen en formato .png
   void _draw(const char* nb) {
     //    unsigned char rgb[H_IMG * W_IMG * 3], *p = rgb;

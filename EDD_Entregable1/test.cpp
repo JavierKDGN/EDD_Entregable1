@@ -25,6 +25,9 @@ int main() {
   sleep(2);
   im.draw("imagen_desplazada_50abajo.png");
 
+  im.rotate();
+  im.draw("imagen_rotada_antihorario.png");
+
   
 
   /* NOTA 1: Si usan el mismo nombre para las imágenes, entonces cada llamada al
