@@ -1,16 +1,32 @@
 #ifndef MOVING_IMG_H
 #define MOVING_IMG_H
 
+#include <queue>
+#include <stack>
+#include <stdio.h>
 #include "basics.h"
 
 // Clase que representa una imagen como una colección de 3 matrices siguiendo el
 // esquema de colores RGB
 
 class moving_image {
+  typedef enum { MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN, ROTATE, ROTATE_HORARIO } operacion;
+  
+  // Representa un movimiento sobre la imagen.
+  // El método mover(mov) realiza el movimiento mov sobre la imagen.
+  typedef struct {
+    operacion op;
+	int arg;
+  } movimiento;
+
 private:
   unsigned char **red_layer; // Capa de tonalidades rojas
   unsigned char **green_layer; // Capa de tonalidades verdes
   unsigned char **blue_layer; // Capa de tonalidades azules
+
+  std::stack<movimiento> undo_stack;
+  std::stack<movimiento> redo_stack;
+  std::queue<movimiento> historial;
 
 public:
   // Constructor de la imagen. Se crea una imagen por defecto
@@ -67,8 +83,128 @@ public:
     _draw(nb);
   }
 
-  // Función que similar desplazar la imagen, de manera circular, d pixeles a la izquierda
   void move_left(int d) {
+    movimiento mov = (movimiento){ MOVE_LEFT, d };
+	undo_stack.push(mov);
+	historial.push(mov);
+
+    _move_left(d);
+  }
+
+  void move_right(int d) {
+    movimiento mov = (movimiento){ MOVE_RIGHT, d };
+	undo_stack.push(mov);
+	historial.push(mov);
+
+    _move_right(d);
+  }
+
+  void move_up(int d) {
+    movimiento mov = (movimiento){ MOVE_UP, d };
+	undo_stack.push(mov);
+	historial.push(mov);
+
+    _move_up(d);
+  }
+
+  void move_down(int d) {
+    movimiento mov = (movimiento){ MOVE_DOWN, d };
+	undo_stack.push(mov);
+	historial.push(mov);
+
+    _move_down(d);
+  }
+
+  void rotate() {
+    movimiento mov = (movimiento){ ROTATE, 0 };
+	undo_stack.push(mov);
+	historial.push(mov);
+
+    _rotate();
+  }
+
+  void undo() {
+	if (undo_stack.size() == 0)
+		throw "Sin movimientos por deshacer.";
+
+    movimiento mov = undo_stack.top();
+	redo_stack.push(mov);
+	undo_stack.pop();
+
+	// Realiza la operación inversa y la registra en el historial
+    switch (mov.op) {
+    case MOVE_LEFT:
+		historial.push( (movimiento){ MOVE_RIGHT, mov.arg } );
+		_move_right(mov.arg);
+		break;
+
+    case MOVE_RIGHT:
+		historial.push( (movimiento){ MOVE_LEFT, mov.arg } );
+		_move_left(mov.arg);
+		break;
+
+    case MOVE_UP:
+		historial.push( (movimiento){ MOVE_DOWN, mov.arg } );
+		_move_down(mov.arg);
+		break;
+
+    case MOVE_DOWN:
+		historial.push( (movimiento){ MOVE_UP, mov.arg } );
+		_move_up(mov.arg);
+		break;
+
+    case ROTATE:
+		historial.push( (movimiento){ ROTATE_HORARIO, 0 } );
+		_rotate_horario();
+		break;
+    }
+  }
+
+  void redo() {
+    if (redo_stack.size() == 0)
+	  throw "Sin movimientos por rehacer";
+
+	movimiento mov = redo_stack.top();
+	undo_stack.push(mov);
+	historial.push(mov);
+    redo_stack.pop();
+
+	mover(mov);
+  }
+
+  void repeat() {
+    //movimiento mov = undo_stack.top(); TODO: no repetir un undo?
+    movimiento mov = historial.back();
+    mover(mov);
+    undo_stack.push(mov);	
+	historial.push(mov);
+  }
+
+  void repeat_all() {
+	//std::stack<movimiento> u = undo_stack;  TODO: utilizar o no ? habría que implementar un mover_inverso()
+	std::queue<movimiento> h = historial;
+	char nombre_imagen[100];
+
+    //Devuelve la imagen al estado original
+	while (undo_stack.size() != 0) {
+		undo();
+	}
+
+	_draw("000.png");
+	//Repite todos los movimientos del historial
+	for (int numero_imagen = 1; h.size() != 0; numero_imagen++) {
+          mover(h.front());
+		  h.pop();
+
+		  sprintf(nombre_imagen, "%03d.png", numero_imagen);
+		  _draw(nombre_imagen);
+    }	
+  }
+
+// Metodos que solo mueven mueven o dibujan la imagen, no modifican los stacks o el historial
+private:
+  // Función que similar desplazar la imagen, de manera circular, d pixeles a la izquierda
+  void _move_left(int d) {
     unsigned char **tmp_layer = new unsigned char*[H_IMG];
     for(int i=0; i < H_IMG; i++) 
       tmp_layer[i] = new unsigned char[W_IMG];
@@ -119,7 +255,7 @@ public:
       delete tmp_layer;
   }
 
-  void move_right(int d) {
+  void _move_right(int d) {
     unsigned char **tmp_layer = new unsigned char*[H_IMG];
     for(int i=0; i < H_IMG; i++) 
 	    tmp_layer[i] = new unsigned char[W_IMG];
@@ -170,8 +306,7 @@ public:
         delete tmp_layer;
   }
 
-  void move_up(int d) {
-
+  void _move_up(int d) {
     unsigned char **tmp_layer = new unsigned char*[H_IMG];
     for(int i=0; i < H_IMG; i++) 
             tmp_layer[i] = new unsigned char[W_IMG];
@@ -222,7 +357,7 @@ public:
       delete tmp_layer;
   }
 
-  void move_down(int d) {
+  void _move_down(int d) {
     unsigned char **tmp_layer = new unsigned char*[H_IMG];
 	for(int i=0; i < H_IMG; i++) 
 	  tmp_layer[i] = new unsigned char[W_IMG];
@@ -274,7 +409,7 @@ public:
   }
 
   // Rotación anti-horario
-  void rotate() {
+  void _rotate() {
     unsigned char **tmp_layer = new unsigned char*[H_IMG];
 	for(int i=0; i < H_IMG; i++) 
 	  tmp_layer[i] = new unsigned char[W_IMG];
@@ -314,7 +449,7 @@ public:
 }
 
 private:
-  void rotate_horario() {
+  void _rotate_horario() {
     unsigned char **tmp_layer = new unsigned char*[H_IMG];
 	for(int i=0; i < H_IMG; i++) 
       tmp_layer[i] = new unsigned char[W_IMG];
@@ -351,6 +486,35 @@ private:
       delete tmp_layer[i];
 
       delete tmp_layer;
+  }
+
+  // ejecuta el movimiento mov
+  void mover(movimiento mov) {
+    switch (mov.op) {
+    case MOVE_LEFT:
+		_move_left(mov.arg);
+		break;
+
+    case MOVE_RIGHT:
+		_move_right(mov.arg);
+		break;
+
+    case MOVE_UP:
+		_move_up(mov.arg);
+		break;
+
+    case MOVE_DOWN:
+		_move_down(mov.arg);
+		break;
+
+    case ROTATE:
+		_rotate();
+		break;
+
+	case ROTATE_HORARIO:
+		_rotate_horario();
+		break;
+    }
   }
 
   // Función privada que guarda la imagen en formato .png

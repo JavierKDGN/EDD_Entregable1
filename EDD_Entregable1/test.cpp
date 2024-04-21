@@ -22,11 +22,35 @@ int main() {
 
   im.draw("imagen.png");
   im.move_down(50);
-  sleep(2);
   im.draw("imagen_desplazada_50abajo.png");
+  im.undo();
+
+  im.move_up(50);
+  im.draw("imagen_desplazada_50arriba.png");
+  im.undo();
+
+  im.move_left(50);
+  im.draw("imagen_desplazada_50izquierda.png");
+  im.undo();
+
+  im.move_right(50);
+  im.draw("imagen_desplazada_50derecha.png");
+  im.undo();
 
   im.rotate();
   im.draw("imagen_rotada_antihorario.png");
+  
+  im.undo();
+  im.redo();
+  im.draw("redo_rotate.png");
+
+  im.move_left(300);
+  im.rotate();
+  im.repeat();
+  im.undo();
+  im.undo();
+  im.redo();
+  im.repeat_all();
 
   
 
