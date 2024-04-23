@@ -84,7 +84,7 @@ public:
   }
 
   void move_left(int d) {
-    movimiento mov = (movimiento){ MOVE_LEFT, d };
+    movimiento mov = movimiento{ MOVE_LEFT, d };
 	undo_stack.push(mov);
 	historial.push(mov);
 
@@ -92,7 +92,7 @@ public:
   }
 
   void move_right(int d) {
-    movimiento mov = (movimiento){ MOVE_RIGHT, d };
+    movimiento mov = movimiento{ MOVE_RIGHT, d };
 	undo_stack.push(mov);
 	historial.push(mov);
 
@@ -100,7 +100,7 @@ public:
   }
 
   void move_up(int d) {
-    movimiento mov = (movimiento){ MOVE_UP, d };
+    movimiento mov = movimiento{ MOVE_UP, d };
 	undo_stack.push(mov);
 	historial.push(mov);
 
@@ -108,7 +108,7 @@ public:
   }
 
   void move_down(int d) {
-    movimiento mov = (movimiento){ MOVE_DOWN, d };
+    movimiento mov = movimiento{ MOVE_DOWN, d };
 	undo_stack.push(mov);
 	historial.push(mov);
 
@@ -116,7 +116,7 @@ public:
   }
 
   void rotate() {
-    movimiento mov = (movimiento){ ROTATE, 0 };
+    movimiento mov = movimiento{ ROTATE, 0 };
 	undo_stack.push(mov);
 	historial.push(mov);
 
@@ -134,27 +134,27 @@ public:
 	// Realiza la operación inversa y la registra en el historial
     switch (mov.op) {
     case MOVE_LEFT:
-		historial.push( (movimiento){ MOVE_RIGHT, mov.arg } );
+		historial.push( movimiento{ MOVE_RIGHT, mov.arg } );
 		_move_right(mov.arg);
 		break;
 
     case MOVE_RIGHT:
-		historial.push( (movimiento){ MOVE_LEFT, mov.arg } );
+		historial.push( movimiento{ MOVE_LEFT, mov.arg } );
 		_move_left(mov.arg);
 		break;
 
     case MOVE_UP:
-		historial.push( (movimiento){ MOVE_DOWN, mov.arg } );
+		historial.push( movimiento{ MOVE_DOWN, mov.arg } );
 		_move_down(mov.arg);
 		break;
 
     case MOVE_DOWN:
-		historial.push( (movimiento){ MOVE_UP, mov.arg } );
+		historial.push( movimiento{ MOVE_UP, mov.arg } );
 		_move_up(mov.arg);
 		break;
 
     case ROTATE:
-		historial.push( (movimiento){ ROTATE_HORARIO, 0 } );
+		historial.push( movimiento{ ROTATE_HORARIO, 0 } );
 		_rotate_horario();
 		break;
     }
