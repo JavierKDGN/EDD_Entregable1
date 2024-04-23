@@ -20,6 +20,11 @@ void sleep(int ms) {
 int main() {
   moving_image im;
 
+  //im.redo();
+  //im.undo();
+  //im.repeat();
+  //im.repeat_all();
+
   im.draw("imagen.png");
   im.move_down(50);
   im.draw("imagen_desplazada_50abajo.png");
@@ -28,6 +33,7 @@ int main() {
   im.move_up(50);
   im.draw("imagen_desplazada_50arriba.png");
   im.undo();
+
 
   im.move_left(50);
   im.draw("imagen_desplazada_50izquierda.png");
@@ -39,10 +45,15 @@ int main() {
 
   im.rotate();
   im.draw("imagen_rotada_antihorario.png");
-  
   im.undo();
-  im.redo();
-  im.draw("redo_rotate.png");
+
+  im.move_up(200);
+  im.move_down(200);
+  im.undo();
+  im.repeat(); // deberia repetir el move_up()
+  im.draw("imagen_desplazada_400arriba.png");
+  im.undo();   // deshace el repeat()
+  im.draw("imagen_desplazada_200arriba.png");
 
   im.move_left(300);
   im.rotate();

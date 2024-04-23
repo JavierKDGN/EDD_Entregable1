@@ -173,11 +173,13 @@ public:
   }
 
   void repeat() {
-    //movimiento mov = undo_stack.top(); TODO: no repetir un undo?
-    movimiento mov = historial.back();
+    if (undo_stack.empty())
+      throw "Sin movimientos por repetir";
+
+    movimiento mov = undo_stack.top();
     mover(mov);
     undo_stack.push(mov);	
-	historial.push(mov);
+    historial.push(mov);
   }
 
   void repeat_all() {
