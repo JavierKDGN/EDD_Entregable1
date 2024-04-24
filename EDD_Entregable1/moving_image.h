@@ -10,6 +10,8 @@
 // esquema de colores RGB
 
 class moving_image {
+private:
+
   typedef enum { MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN, ROTATE, ROTATE_HORARIO } operacion;
   
   // Representa un movimiento sobre la imagen.
@@ -19,7 +21,6 @@ class moving_image {
 	int arg;
   } movimiento;
 
-private:
   unsigned char **red_layer; // Capa de tonalidades rojas
   unsigned char **green_layer; // Capa de tonalidades verdes
   unsigned char **blue_layer; // Capa de tonalidades azules
@@ -28,9 +29,14 @@ private:
   std::stack<movimiento> redo_stack;
   std::queue<movimiento> historial;
 
+  //Copia de la imagen original en caso de repetir todos los pasos
+  moving_image* im_original_copia;
+  int contador_copias;
+
 public:
   // Constructor de la imagen. Se crea una imagen por defecto
   moving_image() {
+    contador_copias = 0;
     // Reserva de memoria para las 3 matrices RGB
     red_layer = new unsigned char*[H_IMG];
     green_layer = new unsigned char*[H_IMG];
@@ -43,26 +49,29 @@ public:
     }
 
     // Llenamos la imagen con su color de fondo
-    for(int i=0; i < H_IMG; i++)
-      for(int j=0; j < W_IMG; j++) {
-	red_layer[i][j] = DEFAULT_R;
-	green_layer[i][j] = DEFAULT_G;
-	blue_layer[i][j] = DEFAULT_B;
-      }
+    for (int i = 0; i < H_IMG; i++) {
+        for (int j = 0; j < W_IMG; j++) {
+            red_layer[i][j] = DEFAULT_R;
+            green_layer[i][j] = DEFAULT_G;
+            blue_layer[i][j] = DEFAULT_B;
+        }
+    }
 
     // Dibujamos el objeto en su posición inicial
-    for(int i=0; i < 322; i++)
-      for(int j=0; j < 256; j++) {
-	if(!s_R[i][j] && !s_G[i][j] && !s_B[i][j]) {
-	  red_layer[INIT_Y+i][INIT_X+j] = DEFAULT_R;
-	  green_layer[INIT_Y+i][INIT_X+j] = DEFAULT_G;
-	  blue_layer[INIT_Y+i][INIT_X+j] = DEFAULT_B;
-	} else {
-	  red_layer[INIT_Y+i][INIT_X+j] = s_R[i][j];
-	  green_layer[INIT_Y+i][INIT_X+j] = s_G[i][j];
-	  blue_layer[INIT_Y+i][INIT_X+j] = s_B[i][j];
-	}
-      }   
+    for (int i = 0; i < 322; i++) {
+        for (int j = 0; j < 256; j++) {
+            if (!s_R[i][j] && !s_G[i][j] && !s_B[i][j]) {
+                red_layer[INIT_Y + i][INIT_X + j] = DEFAULT_R;
+                green_layer[INIT_Y + i][INIT_X + j] = DEFAULT_G;
+                blue_layer[INIT_Y + i][INIT_X + j] = DEFAULT_B;
+            }
+            else {
+                red_layer[INIT_Y + i][INIT_X + j] = s_R[i][j];
+                green_layer[INIT_Y + i][INIT_X + j] = s_G[i][j];
+                blue_layer[INIT_Y + i][INIT_X + j] = s_B[i][j];
+            }
+        }
+    }
   }
 
   // Destructor de la clase
@@ -169,7 +178,7 @@ public:
 	historial.push(mov);
     redo_stack.pop();
 
-	mover(mov);
+	mover(mov, this);
   }
 
   void repeat() {
@@ -177,30 +186,29 @@ public:
       throw "Sin movimientos por repetir";
 
     movimiento mov = undo_stack.top();
-    mover(mov);
+    mover(mov, this);
     undo_stack.push(mov);	
     historial.push(mov);
   }
 
   void repeat_all() {
-	//std::stack<movimiento> u = undo_stack;  TODO: utilizar o no ? habría que implementar un mover_inverso()
+    im_original_copia = new moving_image(); //Copia de la imagen original
+    contador_copias++; //cantidad de copias
 	std::queue<movimiento> h = historial;
 	char nombre_imagen[100];
+    
+    sprintf(nombre_imagen, "%d_000.png", contador_copias);
+    im_original_copia->draw(nombre_imagen);
 
-    //Devuelve la imagen al estado original
-	while (undo_stack.size() != 0) {
-		undo();
-	}
-
-	_draw("000.png");
 	//Repite todos los movimientos del historial
 	for (int numero_imagen = 1; h.size() != 0; numero_imagen++) {
-          mover(h.front());
+          mover(h.front(),im_original_copia);
 		  h.pop();
 
-		  sprintf(nombre_imagen, "%03d.png", numero_imagen);
-		  _draw(nombre_imagen);
-    }	
+		  sprintf(nombre_imagen, "%d_%03d.png", contador_copias,numero_imagen);
+		  im_original_copia->draw(nombre_imagen);
+    }
+    im_original_copia->~moving_image();
   }
 
 // Metodos que solo mueven mueven o dibujan la imagen, no modifican los stacks o el historial
@@ -490,31 +498,31 @@ private:
       delete tmp_layer;
   }
 
-  // ejecuta el movimiento mov
-  void mover(movimiento mov) {
+  // ejecuta el movimiento mov, se le pasa un puntero a la imagen sobre la que se va a mover
+  void mover(movimiento mov, moving_image *im) {
     switch (mov.op) {
     case MOVE_LEFT:
-		_move_left(mov.arg);
+		im->_move_left(mov.arg);
 		break;
 
     case MOVE_RIGHT:
-		_move_right(mov.arg);
+        im->_move_right(mov.arg);
 		break;
 
     case MOVE_UP:
-		_move_up(mov.arg);
+        im->_move_up(mov.arg);
 		break;
 
     case MOVE_DOWN:
-		_move_down(mov.arg);
+        im->_move_down(mov.arg);
 		break;
 
     case ROTATE:
-		_rotate();
+        im->_rotate();
 		break;
 
 	case ROTATE_HORARIO:
-		_rotate_horario();
+        im->_rotate_horario();
 		break;
     }
   }

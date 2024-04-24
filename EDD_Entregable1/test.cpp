@@ -62,6 +62,7 @@ int main() {
   im.undo();
   im.redo();
   im.repeat_all();
+  im.repeat_all();
 
   
 
